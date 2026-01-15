@@ -42,7 +42,7 @@ Inspector OSI: Referencia interactiva de vulnerabilidades por capa.
 
 The Kraken es una Single Page Application (SPA) de arquitectura monolítica. No requiere servidores, Python, ni Node.js. Es portable y offline.
 
-Descarga el archivo index.html (o v24.html).
+Descarga el archivo index.html (o v12.html).
 
 Ábrelo con cualquier navegador moderno (Chrome, Edge, Firefox, Brave).
 
@@ -108,3 +108,4 @@ Esta herramienta genera configuraciones de seguridad ofensiva/defensiva. El uso 
 
 
 Desarrollado con obsesión por el detalle y paranoia constructiva.
+
