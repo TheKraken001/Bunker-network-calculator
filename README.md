@@ -1,4 +1,4 @@
-🦑 The Kraken Networking Suite (NEXUS V24)
+🦑 The Kraken Networking Suite
 
 The Kraken es una suite de arquitectura de redes Zero-Trust diseñada para ingenieros de ciberseguridad, administradores de red y estudiantes avanzados. No es solo una calculadora VLSM; es un generador de defensa activa.
 
@@ -105,5 +105,6 @@ Comunidad de networking - Por el feedback continuo
 ⚠️ Disclaimer
 
 Esta herramienta genera configuraciones de seguridad ofensiva/defensiva. El uso de ACLs restrictivas (Modo Bunker) puede cortar el acceso a servicios si no se configura correctamente. Úsalo bajo tu propia responsabilidad.
+
 
 Desarrollado con obsesión por el detalle y paranoia constructiva.
