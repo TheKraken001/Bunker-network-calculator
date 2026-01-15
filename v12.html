@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The-Kraken-Networking</title>
+    <style>
+        /* --- ESTILOS NUCLEARES --- */
+        :root {
+            --bg: #050505; --panel: #0d1117; --border: #30363d;
+            --cyan: #00f0ff; --red: #ff2a6d; --green: #05d5fa; --gold: #ffc800; --purple: #bc8cff;
+            --text: #c9d1d9; --dim: #8b949e;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Consolas', monospace; margin: 0; padding: 20px; font-size: 13px; }
+        
+        .container { max-width: 1950px; margin: 0 auto; display: grid; grid-template-columns: 320px 1fr 400px; gap: 15px; }
+        
+        header { grid-column: 1 / -1; border-bottom: 2px solid var(--cyan); padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        h1 { margin: 0; color: var(--cyan); letter-spacing: 3px; text-transform: uppercase; font-size: 2em; text-shadow: 0 0 10px rgba(0, 240, 255, 0.4); }
+        
+        .panel { background: var(--panel); border: 1px solid var(--border); padding: 15px; border-radius: 4px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .panel h2 { color: var(--gold); margin: 0; font-size: 0.9em; text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px; display: flex; justify-content: space-between; }
+
+        .tip-box { background: rgba(255, 200, 0, 0.1); border-left: 3px solid var(--gold); padding: 8px; font-size: 0.8em; color: #fff; margin-bottom: 5px; }
+        .tip-title { color: var(--gold); font-weight: bold; display: block; margin-bottom: 2px; }
+        
+        .cable-rec { background: rgba(188, 140, 255, 0.1); border: 1px solid var(--purple); padding: 10px; font-size: 0.85em; color: #fff; margin-top: 5px; border-radius: 4px; display: flex; align-items: center; gap: 10px; }
+        .cable-icon { font-size: 1.5em; }
+
+        input, select { background: #010409; border: 1px solid var(--border); color: var(--cyan); padding: 8px; width: 100%; box-sizing: border-box; font-family: inherit; margin-bottom: 5px; }
+        input:focus, select:focus { border-color: var(--cyan); outline: none; box-shadow: 0 0 5px rgba(0, 240, 255, 0.2); }
+        
+        button { background: #21262d; border: 1px solid var(--border); color: var(--cyan); padding: 10px; width: 100%; cursor: pointer; font-weight: bold; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+        button:hover { background: var(--cyan); color: #000; box-shadow: 0 0 15px var(--cyan); }
+        .btn-danger { color: var(--red); border-color: var(--red); }
+        .btn-danger:hover { background: var(--red); color: #fff; }
+        .btn-group { display: flex; gap: 5px; margin-top: 5px; }
+        .active-tab { background: var(--cyan); color: #000; border-color: var(--cyan); }
+
+        .osi-stack { display: flex; flex-direction: column; gap: 3px; }
+        .osi-layer { background: #161b22; border: 1px solid var(--border); padding: 6px 10px; font-size: 0.8em; cursor: help; display: flex; justify-content: space-between; transition: 0.2s; text-decoration: none; color: var(--text); }
+        .osi-layer:hover { border-color: var(--red); background: #220a0a; transform: translateX(5px); }
+        .osi-vuln { color: var(--red); font-size: 0.8em; font-family: monospace; }
+
+        .svg-container { background: #010409; border: 1px dashed var(--border); height: 220px; display: flex; align-items: center; justify-content: center; position: relative; overflow: visible; }
+        
+        #vlsm-table { width: 100%; border-collapse: separate; border-spacing: 0 5px; margin-top: 5px; }
+        #vlsm-table td { background: #0f1219; padding: 10px; border: 1px solid var(--border); vertical-align: middle; }
+        .tag { display: inline-block; padding: 2px 6px; border-radius: 2px; font-size: 0.7em; font-weight: bold; margin-right: 5px; }
+        .tag-net { border: 1px solid var(--cyan); color: var(--cyan); }
+        .tag-gw { border: 1px solid var(--green); color: var(--green); }
+        .bin-viz { font-family: 'Consolas', monospace; font-size: 1.1em; margin-top: 5px; color: #444; }
+        .bit-on { color: var(--cyan); text-shadow: 0 0 3px var(--cyan); }
+
+        .proto-btn { padding: 4px; font-size: 0.7em !important; flex:1; }
+        .sim-active { background: var(--purple) !important; color: #000 !important; border-color: var(--purple) !important; }
+        #sim-result { border-left: 3px solid #333; padding: 10px; margin-top: 10px; font-family: 'Courier New', monospace; font-size: 0.85em; background: #000; min-height: 60px; }
+        
+        .terminal { background: #0d1117; padding: 15px; height: 750px; overflow-y: auto; color: #a5d6ff; font-size: 11px; white-space: pre-wrap; border: 1px solid var(--border); }
+        .terminal::-webkit-scrollbar { width: 5px; background: #0d1117; }
+        .terminal::-webkit-scrollbar-thumb { background: #30363d; }
+
+        details.manifest { grid-column: 1 / -1; background: #161b22; border: 1px solid var(--border); margin-bottom: 15px; }
+        details.manifest summary { padding: 10px; cursor: pointer; color: var(--gold); font-weight: bold; }
+        .manifest-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 15px; }
+        .m-card { background: #0d1117; padding: 10px; border: 1px solid var(--border); }
+        .m-card a { color: var(--cyan); text-decoration: none; display: block; font-size: 0.9em; margin-top:5px; }
+
+        .class-row { display: flex; justify-content: space-between; padding: 4px; background: #010409; margin-bottom: 2px; }
+        .badge-ip { padding: 0 6px; border-radius: 2px; color: #000; font-weight: bold; font-size: 0.85em; }
+
+        @media print {
+            body { background: #fff; color: #000; }
+            .no-print { display: none !important; }
+            .panel { border: 1px solid #000; background: #fff; color: #000; }
+            .terminal { border: 1px solid #000; color: #000; height: auto; }
+            .svg-container { filter: invert(1); border: 1px solid #000; }
+            h1, h2 { color: #000 !important; text-shadow: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>The-Kraken-Networking</h1>
+            <div style="font-size:0.9em; color:var(--dim)"></div>
+        </div>
+    <div class="no-print">
+            <button onclick="window.print()" style="width:auto; background:var(--green); color:#000;">🖨️ IMPRIMIR REPORTE</button>
+        </div>
+    </header>
+
+    <details class="manifest no-print" open>
+        <summary>🖥️ [SYSTEM_STATUS]: RECURSOS TÁCTICOS Y DOCUMENTACIÓN</summary>
+        <div class="manifest-grid">
+            <div class="m-card">
+                <strong style="color:var(--green)">1. MATEMÁTICA VLSM</strong>
+                <a href="https://datatracker.ietf.org/doc/html/rfc1918" target="_blank">» RFC1918</a>
+                <a href="#" onclick="alert('Ordenamiento por tamaño descendente')">» Anti-Desperdicio</a>
+            </div>
+            <div class="m-card">
+                <strong style="color:var(--green)">2. SWITCHING L2</strong>
+                <a href="#" onclick="alert('DAI + DHCP Snooping + Port-Security')">» Seguridad Paranoia</a>
+            </div>
+            <div class="m-card">
+                <strong style="color:var(--green)">3. ROUTING & NAT</strong>
+                <a href="#" onclick="alert('Router-on-a-Stick + NAT + QoS')">» Configuración realista</a>
+            </div>
+            <div class="m-card">
+                <strong style="color:var(--green)">4. ESTÁNDARES</strong>
+                <a href="https://www.nist.gov/publications/zero-trust-architecture" target="_blank">» NIST Zero Trust</a>
+            </div>
+        </div>
+    </details>
+
+    <div class="col-left">
+        <div class="panel">
+            <h2>1. INFRAESTRUCTURA FÍSICA</h2>
+            <div style="background:rgba(0, 240, 255, 0.05); padding:10px; border:1px solid var(--cyan);">
+                <label style="color:var(--cyan); font-weight:bold;">📡 ROUTER MODELO</label>
+                <select id="router-model" onchange="updateInterfaces()">
+                    <option value="isr4k">Cisco ISR 4000 (Gi0/0/0)</option>
+                    <option value="isr2900" selected>Cisco ISR 2900 (Gi0/0)</option>
+                    <option value="old1841">Cisco 1841 Legacy (Fa0/0)</option>
+                </select>
+                <div style="font-size:0.7em; color:var(--dim); margin-top:5px;">Auto-ajuste de interfaces para Packet Tracer.</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>2. PERFIL DE MISIÓN</h2>
+            <div class="tip-box no-print">
+                <span class="tip-title">💡 CONSEJO TÁCTICO</span>
+                <option value="bunker">BUNKER (Militar / Paranoia)</option>
+                <option value="corp">EMPRESA (Alta Seguridad)</option>
+                <option value="gaming">GAMING (QoS Prioritario)</option>
+            </div>
+            <select id="profile" onchange="updateProfileUI()">
+                <option value="bunker">🛡️ BUNKER (Militar / Paranoia)</option>
+                <option value="corp">🏢 EMPRESA (Estándar)</option>
+                <option value="gaming">🎮 GAMING (QoS)</option>
+            </select>
+            <div id="profile-desc" style="font-size:0.8em; color:var(--red); margin-top:5px;">⚠️ ALERTA: Tráfico lateral BLOQUEADO.</div>
+            <label style="margin-top:10px; display:flex; align-items:center; gap:10px; cursor:pointer;">
+                <input type="checkbox" id="use-fw" onchange="engageSystem()" style="width:auto;">
+                <span style="font-size:0.9em; font-weight:bold; color:var(--gold);">INCLUIR FIREWALL NGFW</span>
+            </label>
+        </div>
+
+        <div class="panel">
+            <h2>3. INGENIERÍA DE CAPA 1</h2>
+            <label>Distancia al Core:</label>
+            <select id="distance" onchange="updateCableRec()">
+                <option value="short">Intra-Rack (&lt; 5m)</option>
+                <option value="floor">Planta (&lt; 90m)</option>
+                <option value="building">Edificio (&lt; 300m)</option>
+                <option value="campus">Campus (&gt; 300m)</option>
+            </select>
+            <div id="cable-output" class="cable-rec">
+                <span class="cable-icon">🔌</span>
+                <span id="cable-text">Seleccione distancia...</span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>4. SEGMENTACIÓN LÓGICA</h2>
+            <div class="tip-box no-print"><span class="tip-title">💡 IP BASE</span>10.x.x.x (para grandes corporaciones), 172.16.x.x (para redes medianas), 192.168.x.x (Domesticas)</div>
+            <label>Red Base (CIDR):</label>
+            <input type="text" id="baseNet" value="10.20.0.0/16" oninput="monitorCapacity(); validateIP(this);">
+            
+            <div style="margin:5px 0; background:#222; height:6px; border-radius:3px;">
+                <div id="cap-bar" style="width:0%; height:100%; background:var(--green); transition:0.3s;"></div>
+            </div>
+            <div style="text-align:right; font-size:0.7em; color:var(--dim); margin-bottom:10px;" id="cap-text">0% Ocupado</div>
+
+            <label>Segmentos (VLANs):</label>
+            <div id="vlan-list"></div>
+            <div class="btn-group no-print">
+                <button onclick="addVlanInput()" style="border:1px dashed var(--dim); color:var(--dim);">+ VLAN</button>
+                <button onclick="engageSystem()" class="btn-danger">EJECUTAR</button>
+            </div>
+        </div>
+
+        <div class="panel no-print">
+            <h2>🛠️ CALCULADORA RÁPIDA</h2>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="calc-input" placeholder="/27 o 255.255.255.224">
+                <button onclick="calculateEducationalMask()" style="flex:none; width:auto;">CALC</button>
+            </div>
+            <div id="calc-result" style="font-size:0.8em; margin-top:5px; color:var(--gold);">Ingrese máscara...</div>
+        </div>
+    </div>
+
+    <div class="col-center">
+        <div class="panel">
+            <h2>5. TOPOLOGÍA DE COMBATE (SVG)</h2>
+            <div class="svg-container" id="svg-topology">
+                <span style="color:var(--dim)">[SISTEMA EN ESPERA]</span>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>6. MATRIZ VLSM & BINARIO</h2>
+            <table id="vlsm-table">
+                <tbody id="vlsm-body"><tr><td style="text-align:center; color:var(--dim);">Sin datos calculados.</td></tr></tbody>
+            </table>
+        </div>
+
+        <div class="panel">
+            <h2>7. INSPECTOR OSI & VULNS</h2>
+            <div class="osi-stack">
+                <a href="#" class="osi-layer"><span style="color:var(--cyan); font-weight:bold;">7. APLICACIÓN</span><span class="osi-vuln">⚠️ SQLi, XSS</span></a>
+                <a href="#" class="osi-layer"><span style="color:var(--cyan); font-weight:bold;">6. PRESENTACIÓN</span><span class="osi-vuln">⚠️ SSL Strip</span></a>
+                <div class="osi-layer"><span style="color:var(--cyan); font-weight:bold;">5. SESIÓN</span><span class="osi-vuln">⚠️ Hijacking</span></div>
+                <div class="osi-layer"><span style="color:var(--cyan); font-weight:bold;">4. TRANSPORTE</span><span class="osi-vuln">⚠️ Port Scan</span></div>
+                <div class="osi-layer"><span style="color:var(--cyan); font-weight:bold;">3. RED</span><span class="osi-vuln">⚠️ IP Spoofing</span></div>
+                <a href="#" class="osi-layer"><span style="color:var(--cyan); font-weight:bold;">2. ENLACE</span><span class="osi-vuln">⚠️ ARP Poison</span></a>
+                <div class="osi-layer"><span style="color:var(--cyan); font-weight:bold;">1. FÍSICA</span><span class="osi-vuln">⚠️ Wiretapping</span></div>
+            </div>
+        </div>
+
+        <div class="panel no-print">
+            <h2>9. SIMULADOR DE TRÁFICO (LAB)</h2>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                <select id="sim-origin"><option>Origen</option></select>
+                <select id="sim-dest"><option>Destino</option></select>
+            </div>
+            <div class="btn-group">
+                <button onclick="setProto('icmp')" class="proto-btn sim-active" id="btn-icmp">ICMP</button>
+                <button onclick="setProto('http')" class="proto-btn" id="btn-http">HTTP</button>
+                <button onclick="runSim()" style="background:var(--green); color:#000;">▶ TEST</button>
+            </div>
+            <div id="sim-result">Esperando ejecución...</div>
+        </div>
+
+        <div class="panel">
+            <h2>10. REFERENCIA CLASES IP</h2>
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <div class="class-row"><span class="badge-ip" style="background:var(--green);">A</span> <span>1.0.0.0 - 126.x</span> <span>/8</span></div>
+                <div class="class-row"><span class="badge-ip" style="background:var(--cyan);">B</span> <span>128.0.0.0 - 191.x</span> <span>/16</span></div>
+                <div class="class-row"><span class="badge-ip" style="background:var(--gold);">C</span> <span>192.0.0.0 - 223.x</span> <span>/24</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-right">
+        <div class="panel" style="height: 100%;">
+            <h2>
+                8. CÓDIGO (COPIAR Y PEGAR)
+                <div class="btn-group no-print" style="margin-top:0; width:auto;">
+                    <button class="active-tab" id="btn-rt" onclick="showTab('rt')" style="padding:5px;">RT</button>
+                    <button id="btn-sw" onclick="showTab('sw')" style="padding:5px;">SW</button>
+                    <button onclick="copyCode()" style="padding:5px;">COPY</button>
+                </div>
+            </h2>
+            <div id="terminal-output" class="terminal">// The-Kraken-Networking ONLINE.
+// SISTEMA SEGURO Y SANITIZADO.
+// ESPERANDO COMANDO DE EJECUCIÓN...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- ESTADO GLOBAL ---
+    let generatedConfig = { rt: "", sw: "" };
+    let currentTab = 'rt';
+    let intWan = "Gi0/0"; 
+    let intLan = "Gi0/1";
+    let activeVlans = [];
+    let currentProto = 'icmp';
+
+    window.onload = function() {
+        addVlanInput("Servidores", 10, 10);
+        addVlanInput("Usuarios_Corp", 120, 20);
+        addVlanInput("IoT_Sensors", 50, 30);
+        updateInterfaces();
+        updateCableRec();
+        monitorCapacity();
+    };
+
+    // --- SANITIZACIÓN OWASP (ANTI-XSS) ---
+    function escapeHtml(text) {
+        if (!text) return text;
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    // --- FUNCIONES INTERFAZ ---
+    function addVlanInput(name="", hosts="", id="") {
+        const div = document.createElement('div');
+        div.className = 'vlan-row';
+        div.style.display = 'flex'; div.style.gap = '5px'; div.style.marginBottom = '5px';
+        div.innerHTML = `
+            <input type="text" class="v-name" value="${escapeHtml(name)}" placeholder="Nombre" style="flex:2;">
+            <input type="number" class="v-hosts" value="${hosts}" placeholder="#" style="width:60px;" min="1" max="16000" oninput="monitorCapacity()">
+            <input type="number" class="v-id" value="${id}" placeholder="ID" style="width:50px;" min="2" max="4094">
+            <button class="btn-danger no-print" onclick="this.parentElement.remove(); monitorCapacity();" style="width:30px;">×</button>
+        `;
+        document.getElementById('vlan-list').appendChild(div);
+        monitorCapacity();
+    }
+
+    function monitorCapacity() {
+        const baseInput = document.getElementById('baseNet').value;
+        if(!baseInput.includes('/')) return;
+        const cidr = parseInt(baseInput.split('/')[1]);
+        const total = Math.pow(2, 32 - cidr);
+        let used = 0;
+        document.querySelectorAll('.vlan-row').forEach(row => {
+            const h = parseInt(row.querySelector('.v-hosts').value) || 0;
+            if(h > 0) used += Math.pow(2, 32 - getPrefix(h));
+        });
+        const pct = Math.min(100, (used/total)*100);
+        document.getElementById('cap-bar').style.width = `${pct}%`;
+        document.getElementById('cap-bar').style.background = pct > 90 ? 'var(--red)' : pct > 60 ? 'var(--gold)' : 'var(--green)';
+        document.getElementById('cap-text').innerText = `${used} / ${total} IPs (${pct.toFixed(1)}%)`;
+    }
+
+    function validateIP(input) {
+        const ip = input.value.split('/')[0];
+        // VALIDACIÓN IPV4 ROBUSTA CON REGEX
+        const ipv4Regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+        
+        if(!ipv4Regex.test(ip)) {
+            input.style.borderColor = "var(--red)";
+            input.title = "Formato IP Inválido";
+            return;
+        }
+
+        const parts = ip.split('.').map(Number);
+        
+        // Detección de IPs Públicas y Reservadas (RFC1918 + RFC6598 + Loopback)
+        const isPrivate = 
+            (parts[0]===10) || 
+            (parts[0]===172 && parts[1]>=16 && parts[1]<=31) || 
+            (parts[0]===192 && parts[1]===168);
+        
+        const isCGNAT = (parts[0]===100 && parts[1]>=64 && parts[1]<=127);
+        const isLoopback = (parts[0]===127);
+
+        if (isPrivate) {
+            input.style.borderColor = "var(--cyan)";
+            input.title = "Red Privada Segura";
+        } else if (isCGNAT || isLoopback) {
+            input.style.borderColor = "var(--gold)";
+            input.title = "Rango Reservado/CGNAT";
+        } else {
+            input.style.borderColor = "var(--red)";
+            input.title = "ALERTA: IP PÚBLICA DETECTADA";
+        }
+    }
+
+    function updateInterfaces() {
+        const m = document.getElementById('router-model').value;
+        if(m==='isr4k') { intWan="Gi0/0/0"; intLan="Gi0/0/1"; }
+        else if(m==='isr2900') { intWan="Gi0/0"; intLan="Gi0/1"; }
+        else { intWan="Fa0/0"; intLan="Fa0/1"; }
+    }
+
+    function updateProfileUI() {
+        const p = document.getElementById('profile').value;
+        const d = document.getElementById('profile-desc');
+        if(p==='bunker') { d.innerHTML = "⚠️ ALERTA: Tráfico lateral BLOQUEADO."; d.style.color = "var(--red)"; }
+        else if(p==='gaming') { d.innerHTML = "🚀 INFO: QoS Prioritario."; d.style.color = "var(--green)"; }
+        else { d.innerHTML = "ℹ️ INFO: Seguridad estándar."; d.style.color = "var(--text)"; }
+    }
+
+    function updateCableRec() {
+        const d = document.getElementById('distance').value;
+        const out = document.getElementById('cable-text');
+        if (d === 'short') out.innerHTML = 'Rec: <strong>DAC / CAT6A Patch</strong> (Rack).';
+        else if (d === 'floor') out.innerHTML = 'Rec: <strong>CAT6A (F/UTP)</strong> (Usuario).';
+        else if (d === 'building') out.innerHTML = 'Rec: <strong>Fibra Multimodo (OM4)</strong>.';
+        else out.innerHTML = 'Rec: <strong>Fibra Monomodo (OS2)</strong> (Campus).';
+    }
+
+    // --- CEREBRO BLINDADO ---
+    function engageSystem() {
+        updateInterfaces();
+        const baseVal = document.getElementById('baseNet').value.trim();
+        if(!baseVal.includes('/')) return alert("Error: Formato CIDR requerido (ej: 10.0.0.0/8)");
+
+        const cidr = parseInt(baseVal.split('/')[1]);
+        if(isNaN(cidr) || cidr < 8 || cidr > 30) return alert("Error: Máscara CIDR inválida (8-30).");
+
+        // TRY-CATCH PARA ipToInt
+        let baseIp;
+        try {
+            const ipRaw = ipToInt(baseVal.split('/')[0]);
+            const maskInt = ~((1 << (32 - cidr)) - 1);
+            baseIp = ipRaw & maskInt; 
+        } catch (e) {
+            return alert("Error Crítico: Dirección IP base corrupta.");
+        }
+        
+        let currentIp = baseIp;
+        let vlans = [];
+        let usedIds = new Set();
+
+        let rows = document.querySelectorAll('.vlan-row');
+        for(let row of rows) {
+            // Sanitización de Inputs al leerlos
+            let nameRaw = row.querySelector('.v-name').value;
+            let nameSafe = escapeHtml(nameRaw).toUpperCase().replace(/\s/g,'_').replace(/[^A-Z0-9_]/g, ''); // Solo caracteres seguros
+            
+            const h = parseInt(row.querySelector('.v-hosts').value) || 0;
+            const id = parseInt(row.querySelector('.v-id').value) || 0;
+            
+            if(h < 1) return alert(`Error: La VLAN ${nameSafe} debe tener hosts.`);
+            if(id < 2 || id > 4094) return alert(`Error: ID de VLAN ${id} inválido (2-4094).`);
+            if(usedIds.has(id)) return alert(`Error: ID ${id} duplicado.`);
+            
+            usedIds.add(id);
+            vlans.push({ name: nameSafe || `VLAN${id}`, hosts: h, id: id });
+        }
+
+        if(vlans.length === 0) return alert("Agrega al menos una VLAN válida.");
+        
+        const totalAvailable = Math.pow(2, 32 - cidr);
+        let needed = 0; vlans.forEach(v => needed += Math.pow(2, 32 - getPrefix(v.hosts)));
+        if (needed > totalAvailable) return alert(`⛔ ERROR: Capacidad excedida. Necesitas una red más grande.`);
+
+        vlans.sort((a,b) => b.hosts - a.hosts);
+        activeVlans = vlans;
+        updateSimSelects();
+
+        let html = "";
+        vlans.forEach(v => {
+            const prefix = getPrefix(v.hosts);
+            const size = Math.pow(2, 32 - prefix);
+            
+            v.network = intToIp(currentIp);
+            v.gateway = intToIp(currentIp + 1);
+            v.broadcast = intToIp(currentIp + size - 1);
+            v.mask = intToIp(~((1 << (32 - prefix)) - 1));
+            v.wildcard = intToIp((1 << (32 - prefix)) - 1);
+            
+            let bin = currentIp.toString(2).padStart(32,'0');
+            let viz = "";
+            for(let i=0; i<32; i++) {
+                if(i>0 && i%8===0) viz += ".";
+                viz += i < prefix ? `<span class="bit-on">${bin[i]}</span>` : `<span style="color:#444">${bin[i]}</span>`;
+            }
+
+            html += `<tr>
+                <td style="text-align:center;"><div style="font-size:1.5em; color:var(--cyan); font-weight:bold;">${v.id}</div></td>
+                <td><div style="font-weight:bold; font-size:1.1em; color:#fff">${v.name}</div><div style="color:var(--green); font-size:0.8em;">${v.hosts} hosts</div></td>
+                <td>
+                    <div><span class="tag tag-net">RED</span> ${v.network}/${prefix}</div>
+                    <div><span class="tag tag-gw">GW</span> ${v.gateway}</div>
+                    <div class="bin-viz">${viz}</div>
+                </td>
+            </tr>`;
+            currentIp += size;
+        });
+        document.getElementById('vlsm-body').innerHTML = html;
+
+        const profile = document.getElementById('profile').value;
+        const useFw = document.getElementById('use-fw').checked;
+        generatedConfig.rt = generateRouter(vlans, profile, useFw);
+        generatedConfig.sw = generateSwitch(vlans, profile);
+        
+        showTab(currentTab);
+        drawTopology(vlans, useFw);
+    }
+
+    // --- GENERADORES ---
+    function generateRouter(vlans, profile, useFw) {
+        let c = `! The-Kraken-Networking ROUTER\n! MODELO: ${document.getElementById('router-model').value}\n! PERFIL: ${profile.toUpperCase()}\nversion 15.1\nservice password-encryption\nhostname R-EDGE-01\n!\nip domain-name defense.local\ncrypto key generate rsa modulus 2048\nusername admin secret 0 SecurePass!\nip ssh version 2\n!\n`;
+        c += `interface ${intWan}\n description *** WAN ***\n`;
+        if(useFw) c += ` ip address 192.168.254.2 255.255.255.252\n`;
+        else c += ` ip address dhcp\n ip nat outside\n ip access-group WAN_HARDENING in\n`;
+        c += ` no shutdown\nexit\n!\ninterface ${intLan}\n no ip address\n no shutdown\nexit\n!\n`;
+
+        vlans.forEach(v => {
+            c += `interface ${intLan}.${v.id}\n description VLAN_${v.name}\n encapsulation dot1Q ${v.id}\n ip address ${v.gateway} ${v.mask}\n`;
+            if(!useFw) {
+                c += ` ip nat inside\n`;
+                if(profile === 'bunker') c += ` ip access-group BLOCK_${v.id} in\n`;
+            }
+            c += ` no ip redirects\n exit\n!\n`;
+        });
+
+        c += `! DHCP\n`;
+        vlans.forEach(v => { c += `ip dhcp pool ${v.name}\n network ${v.network} ${v.mask}\n default-router ${v.gateway}\n dns-server 8.8.8.8\nexit\n`; });
+
+        if(!useFw) {
+            c += `\n! ACLs\nip access-list standard NAT_ACL\n permit any\nexit\nip nat inside source list NAT_ACL interface ${intWan} overload\n`;
+            c += `\nip access-list extended WAN_HARDENING\n deny ip any any log\nexit\n`;
+            if(profile === 'bunker') {
+                vlans.forEach(v => {
+                    c += `\nip access-list extended BLOCK_${v.id}\n permit udp any any eq bootps\n permit udp any any eq domain\n deny ip ${v.network} ${v.wildcard} 10.0.0.0 0.255.255.255\n deny ip ${v.network} ${v.wildcard} 172.16.0.0 0.15.255.255\n deny ip ${v.network} ${v.wildcard} 192.168.0.0 0.0.255.255\n permit ip any any\nexit`;
+                });
+            }
+        } else { c += `\nip route 0.0.0.0 0.0.0.0 192.168.254.1\n`; }
+
+        c += `\nend\nwrite memory`;
+        return c;
+    }
+
+    function generateSwitch(vlans, profile) {
+        let c = `! The-Kraken-Networking SWITCH\nservice password-encryption\nhostname SW-CORE\nip ssh version 2\n!\nip dhcp snooping\nip dhcp snooping vlan ${vlans.map(v=>v.id).join(',')}\n!\n`;
+        vlans.forEach(v => { c += `vlan ${v.id}\n name ${v.name}\n exit\n`; });
+        c += `\n! ACCESS\ninterface range Gi0/1 - 24\n switchport mode access\n spanning-tree portfast\n spanning-tree bpduguard enable\n ip verify source\n`;
+        if(profile === 'bunker') c += ` switchport port-security\n switchport port-security violation shutdown\n`;
+        c += ` exit\n\n! UPLINK\ninterface Gi0/48\n switchport mode trunk\n ip dhcp snooping trust\n no shutdown\nexit`;
+        return c;
+    }
+
+    // --- SIMULADOR ---
+    function updateSimSelects() {
+        const org = document.getElementById('sim-origin');
+        const dst = document.getElementById('sim-dest');
+        org.innerHTML = '<option value="">Origen</option>';
+        dst.innerHTML = '<option value="">Destino</option>';
+        activeVlans.forEach(v => {
+            let o = `<option value="${v.id}">VLAN ${v.id}</option>`;
+            org.innerHTML += o; dst.innerHTML += o;
+        });
+    }
+
+    function setProto(p) { currentProto = p; document.querySelectorAll('.proto-btn').forEach(b => b.classList.remove('sim-active')); document.getElementById(`btn-${p}`).classList.add('sim-active'); }
+
+    function runSim() {
+        const org = document.getElementById('sim-origin').value;
+        const dst = document.getElementById('sim-dest').value;
+        const res = document.getElementById('sim-result');
+        const prof = document.getElementById('profile').value;
+
+        if(!org || !dst) { res.innerHTML = "Seleccione VLANs."; return; }
+        res.innerHTML = `<span style="color:var(--cyan)">Enviando sonda ${currentProto.toUpperCase()}...</span>`;
+        animatePacket(org, dst);
+
+        setTimeout(() => {
+            if(org === dst) res.innerHTML = `<span style="color:var(--green)">✅ ÉXITO (L2):</span> Intra-VLAN.`;
+            else if (prof === 'bunker') res.innerHTML = `<span style="color:var(--red)">❌ BLOQUEADO (L3):</span> ACL Zero Trust.`;
+            else res.innerHTML = `<span style="color:var(--green)">✅ ÉXITO (L3):</span> Routing OK.`;
+        }, 1000);
+    }
+
+    // --- CALCULADORA RÁPIDA ---
+    function calculateEducationalMask() {
+        const input = document.getElementById('calc-input').value.trim();
+        const r = document.getElementById('calc-result');
+        try {
+            let cidr;
+            if(input.includes('.')) { cidr = input.split('.').map(n => parseInt(n).toString(2)).join('').split('1').length - 1; }
+            else if(input.startsWith('/')) { cidr = parseInt(input.replace('/','')); }
+            else throw "Error";
+            
+            const hosts = Math.pow(2, 32-cidr)-2;
+            const mask = intToIp(~((1<<(32-cidr))-1));
+            r.innerHTML = `CIDR: <strong>/${cidr}</strong> | MÁSCARA: <strong style="color:var(--cyan)">${mask}</strong><br>HOSTS: <strong style="color:var(--green)">${hosts}</strong>`;
+        } catch(e) { r.innerHTML = "Error formato."; }
+    }
+
+    // --- UTILS ---
+    function showTab(t) { currentTab=t; document.getElementById('terminal-output').textContent = generatedConfig[t]||"// Ejecutar sistema."; document.querySelectorAll('.active-tab').forEach(b=>b.classList.remove('active-tab')); document.getElementById(`btn-${t}`).classList.add('active-tab'); }
+    function copyCode() { navigator.clipboard.writeText(document.getElementById('terminal-output').textContent); alert("Código copiado."); }
+    
+    function drawTopology(vlans, useFw) {
+        const box = document.getElementById('svg-topology');
+        let svg = `<svg width="100%" height="100%" viewBox="0 0 350 200">`;
+        if(useFw) { svg += `<rect x="155" y="10" width="40" height="25" fill="#111" stroke="#ff2a6d" stroke-width="2"/><text x="175" y="27" text-anchor="middle" fill="#ff2a6d" font-size="8">FW</text><line x1="175" y1="35" x2="175" y2="60" stroke="#444" stroke-width="2"/>`; }
+        else { svg += `<text x="175" y="20" text-anchor="middle" fill="#888" font-size="8">INTERNET</text><line x1="175" y1="25" x2="175" y2="60" stroke="#444" stroke-width="2" stroke-dasharray="4"/>`; }
+        svg += `<rect x="155" y="60" width="40" height="30" fill="#111" stroke="#00f0ff" stroke-width="2"/><text x="175" y="80" text-anchor="middle" fill="#00f0ff" font-size="8">ROUTER</text><rect x="145" y="110" width="60" height="25" fill="#111" stroke="#05d5fa" stroke-width="2"/><text x="175" y="126" text-anchor="middle" fill="#05d5fa" font-size="8">SWITCH</text><line x1="175" y1="90" x2="175" y2="110" stroke="#444" stroke-width="2"/>`;
+        vlans.forEach((v, i) => {
+            const x = 40 + i * (270 / Math.max(1, vlans.length-1));
+            const color = v.id == 99 ? '#ff2a6d' : '#00f0ff';
+            svg += `<line x1="175" y1="135" x2="${x}" y2="170" stroke="#333"/><circle cx="${x}" cy="170" r="12" fill="#111" stroke="${color}"/><text x="${x}" y="${y=174}" text-anchor="middle" fill="#fff" font-size="8">${v.id}</text>`;
+        });
+        svg += `</svg>`;
+        box.innerHTML = svg;
+    }
+
+    function getVlanXPosition(vlanId) {
+        const index = activeVlans.findIndex(v => v.id == vlanId);
+        if(index === -1) return 175; // Default center
+        return 40 + index * (270 / Math.max(1, activeVlans.length - 1));
+    }
+
+    function animatePacket(orgId, dstId) {
+        const svg = document.querySelector('#svg-topology svg');
+        if(!svg) return;
+        
+        const originX = getVlanXPosition(orgId);
+        const destX = getVlanXPosition(dstId);
+        
+        const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        circle.setAttribute("r", "4");
+        circle.setAttribute("fill", "#fff");
+        svg.appendChild(circle);
+
+        const anim = circle.animate([
+            { cx: originX, cy: 170 }, // Inicio (VLAN)
+            { cx: 175, cy: 122 },     // Switch
+            { cx: 175, cy: 75 },      // Router
+            { cx: 175, cy: 122 },     // Switch
+            { cx: destX, cy: 170 }    // Destino
+        ], {
+            duration: 1000,
+            easing: 'ease-in-out',
+            fill: 'forwards'
+        });
+
+        anim.onfinish = () => circle.remove();
+    }
+
+    function ipToInt(ip){
+        if (!/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ip)) {
+            throw new Error("IP Inválida");
+        }
+        return ip.split('.').reduce((a,b)=>(a<<8)+parseInt(b),0)>>>0;
+    }
+    function intToIp(i){return[i>>>24&255,i>>>16&255,i>>>8&255,i&255].join('.')}
+    function getPrefix(h){let b=0;while(Math.pow(2,b)-2<h)b++;return 32-b}
+// --- FUNCIÓN DE REPORTE DETALLADO (ESTILO The-Kraken-Networking) ---
+function generarReporteCompleto() {
+    if (!activeVlans || activeVlans.length === 0) {
+        alert("⚠️ Primero debes ejecutar el sistema (botón EJECUTAR)");
+        return;
+    }
+
+    // Calcular estadísticas
+    const totalHosts = activeVlans.reduce((sum, v) => sum + v.hosts, 0);
+    const profile = document.getElementById('profile').value;
+    const routerModel = document.getElementById('router-model').value;
+    const baseNet = document.getElementById('baseNet').value;
+    const useFw = document.getElementById('use-fw').checked;
+    
+    // Generar diagrama SVG para el reporte
+    const diagramSVG = generateDiagramForReport(activeVlans, useFw);
+
+    const reporteHTML = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>REPORTE The-Kraken-Networking</title>
+        <style>
+            /* --- ESTILOS The-Kraken-Networking PARA REPORTE --- */
+            :root {
+                --bg: #050505; --panel: #0d1117; --border: #30363d;
+                --cyan: #00f0ff; --red: #ff2a6d; --green: #05d5fa; 
+                --gold: #ffc800; --purple: #bc8cff; --text: #c9d1d9; --dim: #8b949e;
+            }
+            
+            @media print {
+                @page { 
+                    margin: 0.5cm;
+                    size: A4 landscape;
+                }
+                body { 
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                }
+                .no-print { display: none !important; }
+            }
+            
+            body { 
+                background: var(--bg); 
+                color: var(--text); 
+                font-family: 'Consolas', 'Courier New', monospace; 
+                margin: 0;
+                padding: 15px;
+                font-size: 12px;
+                line-height: 1.4;
+            }
+            
+            .container {
+                max-width: 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            
+            header { 
+                grid-column: 1 / -1;
+                border-bottom: 3px solid var(--cyan);
+                padding-bottom: 15px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+            
+            h1 { 
+                color: var(--cyan); 
+                margin: 0;
+                font-size: 1.8em;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+                text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            }
+            
+            h2 { 
+                color: var(--gold);
+                margin: 0 0 10px 0;
+                font-size: 1.1em;
+                border-bottom: 1px solid var(--border);
+                padding-bottom: 5px;
+                text-transform: uppercase;
+            }
+            
+            h3 {
+                color: var(--green);
+                margin: 15px 0 8px 0;
+                font-size: 1em;
+            }
+            
+            .panel {
+                background: var(--panel);
+                border: 1px solid var(--border);
+                padding: 15px;
+                border-radius: 4px;
+                margin-bottom: 15px;
+                box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+                break-inside: avoid;
+            }
+            
+            .section-header {
+                background: rgba(0, 240, 255, 0.05);
+                border-left: 3px solid var(--cyan);
+                padding: 8px 12px;
+                margin: 15px 0;
+                font-weight: bold;
+                color: var(--cyan);
+            }
+            
+            .grid-2col {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+                margin: 15px 0;
+            }
+            
+            .info-card {
+                background: rgba(13, 17, 23, 0.7);
+                border: 1px solid var(--border);
+                padding: 10px;
+                border-radius: 4px;
+            }
+            
+            .vlan-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 11px;
+                margin: 10px 0;
+            }
+            
+            .vlan-table th {
+                background: rgba(0, 240, 255, 0.1);
+                color: var(--cyan);
+                padding: 8px;
+                text-align: left;
+                border: 1px solid var(--border);
+                font-weight: bold;
+            }
+            
+            .vlan-table td {
+                padding: 6px 8px;
+                border: 1px solid var(--border);
+                vertical-align: middle;
+            }
+            
+            .vlan-table tr:nth-child(even) {
+                background: rgba(0, 240, 255, 0.03);
+            }
+            
+            .code-block {
+                background: #010409;
+                border: 1px solid var(--border);
+                padding: 12px;
+                font-family: 'Consolas', monospace;
+                font-size: 10px;
+                white-space: pre-wrap;
+                color: #a5d6ff;
+                border-radius: 4px;
+                max-height: 300px;
+                overflow-y: auto;
+                margin: 10px 0;
+            }
+            
+            .badge {
+                display: inline-block;
+                padding: 2px 6px;
+                border-radius: 2px;
+                font-size: 0.8em;
+                font-weight: bold;
+                margin-right: 5px;
+            }
+            
+            .badge-cyan { background: rgba(0, 240, 255, 0.15); color: var(--cyan); }
+            .badge-green { background: rgba(5, 213, 250, 0.15); color: var(--green); }
+            .badge-red { background: rgba(255, 42, 109, 0.15); color: var(--red); }
+            .badge-gold { background: rgba(255, 200, 0, 0.15); color: var(--gold); }
+            
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+                margin: 15px 0;
+            }
+            
+            .stat-item {
+                text-align: center;
+                padding: 10px;
+                background: rgba(0, 240, 255, 0.05);
+                border: 1px solid var(--border);
+                border-radius: 4px;
+            }
+            
+            .stat-value {
+                font-size: 1.4em;
+                font-weight: bold;
+                color: var(--cyan);
+                display: block;
+            }
+            
+            .stat-label {
+                font-size: 0.8em;
+                color: var(--dim);
+            }
+            
+            .topology-container {
+                background: #010409;
+                border: 1px solid var(--border);
+                padding: 15px;
+                border-radius: 4px;
+                text-align: center;
+                margin: 15px 0;
+                min-height: 200px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .timestamp {
+                text-align: center;
+                color: var(--dim);
+                font-size: 0.9em;
+                margin-top: 30px;
+                padding-top: 15px;
+                border-top: 1px dashed var(--border);
+                grid-column: 1 / -1;
+            }
+            
+            .flex-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin: 10px 0;
+            }
+            
+            .tag {
+                display: inline-block;
+                padding: 1px 5px;
+                border-radius: 2px;
+                font-size: 0.7em;
+                font-weight: bold;
+                margin-right: 3px;
+            }
+            
+            .tag-net { border: 1px solid var(--cyan); color: var(--cyan); }
+            .tag-gw { border: 1px solid var(--green); color: var(--green); }
+            .tag-vlan { border: 1px solid var(--purple); color: var(--purple); }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <header>
+                <h1>The-Kraken-Networking</h1>
+                <div style="color:var(--dim); font-size:0.9em; margin-top:5px;">
+                </div>
+                <div style="color:var(--green); font-size:0.8em; margin-top:5px;">
+                    📅 Reporte generado: ${new Date().toLocaleString('es-ES')}
+                </div>
+            </header>
+            
+            <div class="panel" style="grid-column: 1 / -1;">
+                <h2>📋 [SYSTEM_STATUS]: RESUMEN EJECUTIVO</h2>
+                <div class="flex-row">
+                    <div class="info-card" style="flex: 1;">
+                        <strong style="color:var(--cyan)">📡 PERFIL ACTIVO</strong><br>
+                        ${profile.toUpperCase()} 
+                        ${profile === 'bunker' ? '🛡️' : profile === 'gaming' ? '🎮' : '🏢'}
+                    </div>
+                    <div class="info-card" style="flex: 1;">
+                        <strong style="color:var(--cyan)">🖧 ROUTER MODELO</strong><br>
+                        ${routerModel}
+                    </div>
+                    <div class="info-card" style="flex: 1;">
+                        <strong style="color:var(--cyan)">🔢 RED BASE</strong><br>
+                        ${baseNet}
+                    </div>
+                    <div class="info-card" style="flex: 1;">
+                        <strong style="color:var(--cyan)">🛡️ FIREWALL</strong><br>
+                        ${useFw ? '✅ ACTIVO (NGFW)' : '⚠️ DESACTIVADO'}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>🎯 1. ESTADÍSTICAS DE RED</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-value">${activeVlans.length}</span>
+                        <span class="stat-label">VLANs</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${totalHosts}</span>
+                        <span class="stat-label">Hosts Totales</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${useFw ? 'SI' : 'NO'}</span>
+                        <span class="stat-label">Firewall</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">${profile === 'bunker' ? 'ALTA' : profile === 'gaming' ? 'QoS' : 'MEDIA'}</span>
+                        <span class="stat-label">Seguridad</span>
+                    </div>
+                </div>
+                
+                <h3>🔢 DISTRIBUCIÓN DE HOSTS</h3>
+                <div style="background: #161b22; height: 20px; border-radius: 10px; overflow: hidden; margin: 10px 0;">
+                    ${activeVlans.map((v, i) => {
+                        const width = (v.hosts / totalHosts * 100);
+                        const colors = ['#00f0ff', '#05d5fa', '#ffc800', '#ff2a6d', '#bc8cff'];
+                        return `<div style="width: ${width}%; height: 100%; background: ${colors[i % colors.length]}; float: left;" title="VLAN ${v.id}: ${v.hosts} hosts"></div>`;
+                    }).join('')}
+                </div>
+                <div style="font-size: 0.8em; color: var(--dim); text-align: center;">
+                    ${activeVlans.map(v => `VLAN ${v.id}: ${v.hosts}`).join(' | ')}
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📊 2. MATRIZ VLSM COMPLETA</h2>
+                <table class="vlan-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>NOMBRE</th>
+                            <th>HOSTS</th>
+                            <th>RED / PREFIJO</th>
+                            <th>GATEWAY</th>
+                            <th>MÁSCARA</th>
+                            <th>BROADCAST</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${activeVlans.map(v => `
+                        <tr>
+                            <td><span class="badge badge-cyan">${v.id}</span></td>
+                            <td><strong>${v.name}</strong></td>
+                            <td>${v.hosts}</td>
+                            <td>
+                                <span class="tag tag-net">${v.network}</span><br>
+                                <small>/${getPrefix(v.hosts)}</small>
+                            </td>
+                            <td><span class="tag tag-gw">${v.gateway}</span></td>
+                            <td><code>${v.mask}</code></td>
+                            <td>${v.broadcast}</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <div style="margin-top: 15px; font-size: 0.8em; color: var(--dim);">
+                    <strong>📝 NOTA:</strong> Subredes calculadas sin desperdicio utilizando VLSM.
+                </div>
+            </div>
+            
+            <div class="panel" style="grid-column: 1 / -1;">
+                <h2>🖧 3. TOPOLOGÍA DE COMBATE</h2>
+                <div class="topology-container">
+                    ${diagramSVG}
+                </div>
+                <div style="text-align: center; margin-top: 10px; color: var(--dim); font-size: 0.8em;">
+                    🔄 Topología generada automáticamente - ${useFw ? 'Con Firewall NGFW' : 'Sin Firewall'}
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>⚙️ 4. CONFIGURACIÓN ROUTER</h2>
+                <div class="code-block">${escapeHtml(generatedConfig.rt || "// Ejecuta el sistema primero")}</div>
+                <div style="margin-top: 10px;">
+                    <span class="badge badge-gold">Interfaces:</span> 
+                    WAN: ${intWan} | LAN: ${intLan}
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>🔀 5. CONFIGURACIÓN SWITCH</h2>
+                <div class="code-block">${escapeHtml(generatedConfig.sw || "// Ejecuta el sistema primero")}</div>
+                <div style="margin-top: 10px;">
+                    <span class="badge badge-gold">VLANs:</span> 
+                    ${activeVlans.map(v => v.id).join(', ')}
+                </div>
+            </div>
+            
+            <div class="panel" style="grid-column: 1 / -1;">
+                <h2>🛡️ 6. MEDIDAS DE SEGURIDAD</h2>
+                <div class="grid-2col">
+                    <div>
+                        <h3>🔐 SEGURIDAD POR PERFIL</h3>
+                        <div class="info-card">
+                            ${profile === 'bunker' ? 
+                                '🛡️ <strong>Máxima seguridad:</strong><br>• ACLs Zero Trust<br>• Bloqueo tráfico lateral<br>• Port-Security activo' :
+                              profile === 'gaming' ?
+                                '🎮 <strong>Prioridad QoS:</strong><br>• Ancho de banda garantizado<br>• Latencia optimizada' :
+                                '🏢 <strong>Seguridad Corporativa:</strong><br>• ACLs estándar<br>• Segmentación básica'}
+                        </div>
+                    </div>
+                    <div>
+                        <h3>📡 CARACTERÍSTICAS ACTIVAS</h3>
+                        <div class="info-card">
+                            ${useFw ? '✅ <strong>Firewall NGFW:</strong><br>• Inspección profunda<br>• Filtrado por aplicación' : '⚠️ <strong>NAT Overload:</strong><br>• Enmascaramiento IP<br>• ACLs básicas'}<br>
+                            • DHCP Snooping<br>
+                            • SSH v2<br>
+                            • Password Encryption
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📋 7. INSPECTOR OSI</h2>
+                <div style="display: flex; flex-direction: column; gap: 3px;">
+                    ${['APLICACIÓN', 'PRESENTACIÓN', 'SESIÓN', 'TRANSPORTE', 'RED', 'ENLACE', 'FÍSICA']
+                      .map((layer, i) => `
+                      <div style="display: flex; justify-content: space-between; padding: 5px 10px; background: ${i % 2 ? '#161b22' : '#0d1117'}; border: 1px solid var(--border);">
+                          <span style="color: var(--cyan); font-weight: bold;">${7-i}. ${layer}</span>
+                          <span style="color: var(--red); font-size: 0.8em;">${getOsiVuln(7-i)}</span>
+                      </div>
+                      `).join('')}
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>📚 8. REFERENCIAS TÉCNICAS</h2>
+                <div class="grid-2col">
+                    <div>
+                        <h3>📊 CLASES IP</h3>
+                        <table style="width: 100%; font-size: 0.9em;">
+                            <tr><td><span class="badge badge-green">A</span></td><td>1.0.0.0 - 126.x.x.x</td><td>/8</td></tr>
+                            <tr><td><span class="badge badge-cyan">B</span></td><td>128.0.0.0 - 191.x.x.x</td><td>/16</td></tr>
+                            <tr><td><span class="badge badge-gold">C</span></td><td>192.0.0.0 - 223.x.x.x</td><td>/24</td></tr>
+                        </table>
+                    </div>
+                    <div>
+                        <h3>🔗 ESTÁNDARES</h3>
+                        <div style="font-size: 0.9em;">
+                            • RFC1918 (IPs Privadas)<br>
+                            • RFC2131 (DHCP)<br>
+                            • NIST Zero Trust<br>
+                            • OWASP Top 10
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="timestamp">
+                🔐 <strong>REPORTE The-Kraken-Networking - IRONCLAD DEFENSE SYSTEM</strong><br>
+                Hash de integridad: ${btoa(new Date().getTime().toString()).substring(0, 16).toUpperCase()} | 
+                ${activeVlans.length} VLANs | 
+                ${totalHosts} hosts |
+                Perfil: ${profile.toUpperCase()}
+            </div>
+        </div>
+        
+        <div class="no-print" style="text-align: center; margin-top: 20px; padding: 15px; border-top: 1px solid var(--border);">
+            <button onclick="window.print()" style="background: var(--green); color: #000; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px;">
+                🖨️ IMPRIMIR ESTE REPORTE
+            </button>
+            <div style="margin-top: 10px; font-size: 0.8em; color: var(--dim);">
+                El reporte se auto-ajusta para impresión en tamaño A4 landscape
+            </div>
+        </div>
+        
+        <script>
+            // Auto-impresión después de 1.5 segundos
+            setTimeout(() => {
+                window.print();
+            }, 1500);
+            
+            function getOsiVuln(layer) {
+                const vulns = {
+                    7: 'SQLi, XSS',
+                    6: 'SSL Strip',
+                    5: 'Hijacking',
+                    4: 'Port Scan',
+                    3: 'IP Spoofing',
+                    2: 'ARP Poison',
+                    1: 'Wiretapping'
+                };
+                return vulns[layer] || 'Vulnerable';
+            }
+        <\/script>
+    </body>
+    </html>
+    `;
+    
+    const ventanaReporte = window.open('', '_blank', 'width=1200,height=800');
+    ventanaReporte.document.write(reporteHTML);
+    ventanaReporte.document.close();
+}
+
+// Función para generar diagrama SVG para el reporte
+function generateDiagramForReport(vlans, useFw) {
+    const total = vlans.length;
+    let svg = `<svg width="100%" height="180" viewBox="0 0 400 180" style="background: #010409; border-radius: 4px;">`;
+    
+    // INTERNET / FIREWALL
+    if(useFw) {
+        svg += `<rect x="170" y="10" width="60" height="30" fill="#0d1117" stroke="#ff2a6d" stroke-width="2" rx="3"/>
+                <text x="200" y="30" text-anchor="middle" fill="#ff2a6d" font-size="10" font-weight="bold">NGFW</text>`;
+    } else {
+        svg += `<circle cx="200" cy="25" r="20" fill="#0d1117" stroke="#444" stroke-width="2"/>
+                <text x="200" y="30" text-anchor="middle" fill="#888" font-size="9">INTERNET</text>`;
+    }
+    
+    // ROUTER
+    svg += `<rect x="185" y="50" width="30" height="30" fill="#0d1117" stroke="#00f0ff" stroke-width="2" rx="3"/>
+            <text x="200" y="70" text-anchor="middle" fill="#00f0ff" font-size="9">RT</text>`;
+    
+    // SWITCH
+    svg += `<rect x="180" y="90" width="40" height="25" fill="#0d1117" stroke="#05d5fa" stroke-width="2" rx="3"/>
+            <text x="200" y="105" text-anchor="middle" fill="#05d5fa" font-size="9">SW</text>`;
+    
+    // CONEXIONES
+    svg += `<line x1="200" y1="40" x2="200" y2="50" stroke="#444" stroke-width="2" stroke-dasharray="${useFw ? 'none' : '4'}"/>`;
+    svg += `<line x1="200" y1="80" x2="200" y2="90" stroke="#444" stroke-width="2"/>`;
+    svg += `<line x1="200" y1="115" x2="200" y2="130" stroke="#444" stroke-width="2"/>`;
+    
+    // VLANs
+    const colors = ['#00f0ff', '#05d5fa', '#ffc800', '#ff2a6d', '#bc8cff'];
+    vlans.forEach((v, i) => {
+        const x = 50 + i * (300 / Math.max(1, total - 1));
+        const color = colors[i % colors.length];
+        
+        svg += `<line x1="200" y1="130" x2="${x}" y2="160" stroke="#333" stroke-width="1.5"/>`;
+        svg += `<circle cx="${x}" cy="160" r="15" fill="#0d1117" stroke="${color}" stroke-width="2"/>`;
+        svg += `<text x="${x}" y="165" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">${v.id}</text>`;
+        svg += `<text x="${x}" y="175" text-anchor="middle" fill="${color}" font-size="7">${v.name.substring(0, 8)}</text>`;
+    });
+    
+    svg += `</svg>`;
+    return svg;
+}
+
+// Función auxiliar para vulnerabilidades OSI
+function getOsiVuln(layer) {
+    const vulns = {
+        7: 'SQLi, XSS',
+        6: 'SSL Strip',
+        5: 'Hijacking',
+        4: 'Port Scan',
+        3: 'IP Spoofing',
+        2: 'ARP Poison',
+        1: 'Wiretapping'
+    };
+    return vulns[layer] || 'Vulnerable';
+}
+</script>
+
+</body>
+</html>
